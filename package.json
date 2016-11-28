@@ -1,0 +1,33 @@
+{
+  "name": "parse-cli-server",
+  "version": "0.0.1",
+  "description": "Parse CLI server",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/back4app/parse-cli-server"
+  },
+  "files": [
+    "lib/",
+    "LICENSE"
+  ],
+  "license": "???",
+  "dependencies": {
+    "body-parser": "1.15.2",
+    "crypto": "0.0.3",
+    "express": "4.14.0",
+    "parse-server": "2.2.25-beta.1"
+  },
+  "devDependencies": {
+    "babel-cli": "6.18.0",
+    "babel-core": "6.18.2",
+    "babel-plugin-syntax-flow": "6.13.0",
+    "babel-plugin-transform-flow-strip-types": "6.18.0",
+    "babel-preset-es2015": "6.14.0",
+    "babel-preset-stage-0": "6.5.0",
+    "babel-register": "6.18.0"
+  },
+  "scripts": {
+    "build": "babel src/ -d lib/"
+  },
+  "main": "lib/ParseCliServer.js"
+}
