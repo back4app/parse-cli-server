@@ -210,7 +210,7 @@ class ParseCliController {
       return this.getFile(folder, filename, version, checksum)
       .then(data => {
         return this.vendorAdapter.collect(
-          deployInfo.releaseId, folder, filename, data);
+          deployInfo, folder, filename, data);
       });
     });
     return Promise.all(promises);
@@ -225,7 +225,7 @@ class ParseCliController {
       return this._collect(deployInfo, 'cloud')
       .then(() => this._collect(deployInfo, 'public'))
       .then(() => this.setDeployInfo(deployInfo))
-      .then(() => this.vendorAdapter.publish(deployInfo.releaseId))
+      .then(() => this.vendorAdapter.publish(deployInfo))
       .then(() => deployInfo);
     });
   }
