@@ -209,18 +209,25 @@ class ParseCliController {
         checksum = deployInfo.checksums[folder][filename];
       return this.getFile(folder, filename, version, checksum)
       .then(data => {
-        return this.vendorAdapter.collect(path.join(folder, filename), data);
+        return this.vendorAdapter.collect(
+          deployInfo.releaseId, folder, filename, data);
       });
     });
     return Promise.all(promises);
   }
 
   deploy(deployInfo){
-    return this._collect(deployInfo, 'cloud')
-    .then(() => this._collect(deployInfo, 'public'))
-    .then(() => this.setDeployInfo(deployInfo))
-    .then(() => this.vendorAdapter.publish())
-    .then(() => deployInfo);
+    return this.getDeployInfo().then(currentDeployInfo => {
+      var currentDeployInfoId = currentDeployInfo ? currentDeployInfo.releaseId : 0;
+      var deployInfoId = currentDeployInfoId + 1;
+      deployInfo.releaseId = deployInfoId;
+      deployInfo.releaseName = "v" + deployInfoId;
+      return this._collect(deployInfo, 'cloud')
+      .then(() => this._collect(deployInfo, 'public'))
+      .then(() => this.setDeployInfo(deployInfo))
+      .then(() => this.vendorAdapter.publish(deployInfo.releaseId))
+      .then(() => deployInfo);
+    });
   }
 }
 

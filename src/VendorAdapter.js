@@ -1,5 +1,6 @@
-import * as fs from 'fs';
-import * as os from 'os';
+import fs from 'fs.extra';
+import path from 'path';
+import os from 'os';
 
 class VendorAdapter {
   constructor(config, cloud) {
@@ -26,16 +27,16 @@ class VendorAdapter {
   }
 
   getApps(){
-    return this.getApp(this.config.applicationId)
+    return this.getApp(null)
     .then(parseApp => [parseApp]);
   }
 
   getApp(applicationId){
     return new Promise((resolve, reject) => {
-      return {
+      resolve({
         appName: this.config.appName,
         dashboardURL: null,  // TODO
-        applicationId: this.config.applicationId,
+        applicationId: this.config.appId,
         clientKey: this.config.clientKey,
         javascriptKey: this.config.javascriptKey,
         windowsKey: this.config.dotNetKey,
@@ -43,29 +44,33 @@ class VendorAdapter {
         restKey: this.config.restAPIKey,
         masterKey: this.config.masterKey,
         clientPushEnabled: false,  // TODO
-        clientClassCreationEnabled: allowClientClassCreation,
+        clientClassCreationEnabled: this.config.allowClientClassCreation,
         requireRevocableSessions: false,  // TODO
         revokeSessionOnPasswordChange: this.config.revokeSessionOnPasswordReset
-      }
-    });;
+      });
+    });
   }
 
   createApp(appName){
-    throw "Create new is not supported."
     // create app and return a promise with it
+    return new Promise((resolve, reject) => {
+      reject("Create new is not supported.");
+    });
   }
 
-  collect(deployInfoId, filename, data){
-    var saveTo = path.join(
+  collect(deployInfo, folder, filename, data){
+    var deployPath = path.join(
       os.tmpdir(),
-      deployInfoId,
-      filename
+      'parse-cli-server',
+      deployInfo.releaseName,
+      folder
     );
-    fs.mkdtemp(deployInfoId, (err, folder) =>{
+    fs.mkdirp(deployPath, err =>{
       if (err) {
         throw err;
       }
-      fs.writeFile(saveTo, data, err => {
+      var filePath = path.join(deployPath, filename);
+      fs.writeFile(filePath, data, err => {
         if(err) {
             return console.log(err);
         }
@@ -73,10 +78,45 @@ class VendorAdapter {
     });
   }
 
-  publish(deployInfoId){
+  _copy(from, to){
     return new Promise((resolve, reject) => {
-      console.log("publish!");
-      resolve();
+      fs.walk(from)
+      .on('file', (root, stat, next) => {
+        fs.copy(
+          path.join(root, stat.name),
+          path.join(to, stat.name),
+          {replace: true},
+          err => {
+            if (err) {
+              throw err;
+            }
+            next();
+          });
+      })
+      .on('end', () => {
+        resolve();
+      });
+    });
+  }
+
+  publish(deployInfo){
+    var deployPath = path.join(
+      os.tmpdir(),
+      'parse-cli-server',
+      deployInfo.releaseName
+    );
+    this._copy(
+      path.join(deployPath, 'cloud'),
+      path.dirname(this.cloud))
+    // how to refer to PublicAPIRouter.public_html?
+    /*
+    .then(
+      this._copy(
+        path.join(deployPath, 'public'),
+        PublicAPIRouter.public_html))
+    */
+    .then(() => {
+      console.log("Publish!")
     });
   }
 }

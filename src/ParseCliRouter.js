@@ -53,7 +53,6 @@ class ParseCliRouter extends PromiseRouter {
   }
 
   configureAccountKey(req) {
-    console.log(req.body)
     var accountKey = req.body.accountKey;
 
     return this.controller.getEmail(accountKey).then((email) => {
