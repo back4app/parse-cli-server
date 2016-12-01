@@ -3,9 +3,13 @@ import path from 'path';
 import os from 'os';
 
 class VendorAdapter {
-  constructor(config, cloud) {
+  constructor(config, {
+    cloud,
+    public_html
+  }) {
     this.config = config;
     this.cloud = cloud;
+    this.public_html = public_html;
   }
 
   getEmail(accountKey) {
@@ -27,7 +31,7 @@ class VendorAdapter {
   }
 
   getApps(){
-    return this.getApp(null)
+    return this.getApp()
     .then(parseApp => [parseApp]);
   }
 
@@ -52,9 +56,8 @@ class VendorAdapter {
   }
 
   createApp(appName){
-    // create app and return a promise with it
     return new Promise((resolve, reject) => {
-      reject("Create new is not supported.");
+      reject("Create app is not implemented. Parse Server does not support multiple apps.");
     });
   }
 
@@ -80,6 +83,10 @@ class VendorAdapter {
 
   _copy(from, to){
     return new Promise((resolve, reject) => {
+      if (!to) {
+        resolve();
+        return;
+      }
       fs.walk(from)
       .on('file', (root, stat, next) => {
         fs.copy(
@@ -108,15 +115,12 @@ class VendorAdapter {
     this._copy(
       path.join(deployPath, 'cloud'),
       path.dirname(this.cloud))
-    // how to refer to PublicAPIRouter.public_html?
-    /*
     .then(
       this._copy(
         path.join(deployPath, 'public'),
-        PublicAPIRouter.public_html))
-    */
+        this.public_html))
     .then(() => {
-      console.log("Publish!")
+      console.log("Published!")
     });
   }
 }
