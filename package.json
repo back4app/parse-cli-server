@@ -10,7 +10,8 @@
     "lib/",
     "LICENSE"
   ],
-  "license": "???",
+  "author": "BACK4APP SERVICOS DIGITAIS LTDA",
+  "license": "MIT",
   "dependencies": {
     "body-parser": "1.15.2",
     "crypto": "0.0.3",
