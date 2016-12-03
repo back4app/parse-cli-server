@@ -69,8 +69,8 @@ class ParseCliRouter extends PromiseRouter {
     });
   }
 
-  getJsVersions(){
-    return this.controller.getJsVersions().then(versions => {
+  getJsVersions(req){
+    return this.controller.getJsVersions(req.config.applicationId).then(versions => {
       return {
         response: {
           js: versions
@@ -80,7 +80,8 @@ class ParseCliRouter extends PromiseRouter {
   }
 
   getApps(req) {
-    return this.controller.getApps()
+    let accountKey = req.get('X-Parse-Account-Key');
+    return this.controller.getApps(accountKey)
     .then(parseApps => {
       return {
         response: {
@@ -91,8 +92,9 @@ class ParseCliRouter extends PromiseRouter {
   }
 
   getApp(req){
+    let accountKey = req.get('X-Parse-Account-Key');
     var applicationId = req.params.applicationId;
-    return this.controller.getApp(applicationId)
+    return this.controller.getApp(accountKey, applicationId)
     .then(parseApp => {
       return {
         response: parseApp
@@ -101,8 +103,9 @@ class ParseCliRouter extends PromiseRouter {
   }
 
   createApp(req){
+    let accountKey = req.get('X-Parse-Account-Key');
     var appName = req.body.appName;
-    return this.controller.createApp(appName)
+    return this.controller.createApp(accountKey, appName)
     .then(parseApp => {
       return {response: parseApp};
     });
@@ -113,7 +116,9 @@ class ParseCliRouter extends PromiseRouter {
       filename = req.body.name,
       content = decode(req.body.content);
 
-    return this.controller.uploadFile(folder, filename, content)
+    return this.controller.uploadFile(
+      req.config.applicationId,
+      folder, filename, content)
     .then(version => {
       return {
         response: {
@@ -128,7 +133,9 @@ class ParseCliRouter extends PromiseRouter {
       filename = req.params.filename,
       version = req.query.version,
       checksum = req.query.checksum;
-    return this.controller.getFile(folder, filename, version, checksum)
+    return this.controller.getFile(
+      req.config.applicationId,
+      folder, filename, version, checksum)
     .then(data => {
       if (options.base64) {
         data = data.toString("base64")
@@ -143,7 +150,7 @@ class ParseCliRouter extends PromiseRouter {
   }
 
   getDeployInfo(req) {
-    return this.controller.getDeployInfo()
+    return this.controller.getDeployInfo(req.config.applicationId)
     .then(deployInfo => {
       deployInfo = deployInfo || {};
       return {
@@ -153,7 +160,7 @@ class ParseCliRouter extends PromiseRouter {
   }
 
   deploy(req) {
-    return this.controller.deploy(req.body)
+    return this.controller.deploy(req.config.applicationId, req.body)
     .then(deployInfo => {
       return {
         response: deployInfo

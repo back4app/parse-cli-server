@@ -1,6 +1,8 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 
+import AppCache from 'parse-server/lib/cache';
+
 import ParseCliController from './ParseCliController';
 import ParseCliRouter from './ParseCliRouter';
 import VendorAdapter from './VendorAdapter';
@@ -11,13 +13,16 @@ class ParseCliServer {
     cloud,
     public_html
   }) {
+    if (config) {
+      AppCache.put(config.applicationId, config);
+    }
     if (!vendorAdapter) {
       vendorAdapter = new VendorAdapter(config, {
         cloud: cloud,
         public_html: public_html
       });
     }
-    let controller = new ParseCliController(config, vendorAdapter);
+    let controller = new ParseCliController(vendorAdapter);
     this.router = new ParseCliRouter(controller);
   }
 

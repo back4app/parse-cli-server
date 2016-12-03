@@ -24,23 +24,23 @@ class VendorAdapter {
     });
   }
 
-  getJsVersions() {
+  getJsVersions(appId) {
     return new Promise((resolve, reject) => {
       resolve(["1.9.2"]);
     });
   }
 
-  getApps(){
-    return this.getApp()
+  getApps(accountKey){
+    return this.getApp(this.config.appId)
     .then(parseApp => [parseApp]);
   }
 
-  getApp(applicationId){
+  getApp(accountKey, appId){
     return new Promise((resolve, reject) => {
       resolve({
         appName: this.config.appName,
         dashboardURL: null,  // TODO
-        applicationId: this.config.appId,
+        applicationId: appId,
         clientKey: this.config.clientKey,
         javascriptKey: this.config.javascriptKey,
         windowsKey: this.config.dotNetKey,
@@ -55,13 +55,13 @@ class VendorAdapter {
     });
   }
 
-  createApp(appName){
+  createApp(accountKey, appName){
     return new Promise((resolve, reject) => {
       reject("Create app is not implemented. Parse Server does not support multiple apps.");
     });
   }
 
-  collect(deployInfo, folder, filename, data){
+  collect(appId, deployInfo, folder, filename, data){
     var deployPath = path.join(
       os.tmpdir(),
       'parse-cli-server',
@@ -106,7 +106,7 @@ class VendorAdapter {
     });
   }
 
-  publish(deployInfo){
+  publish(appId, deployInfo){
     var deployPath = path.join(
       os.tmpdir(),
       'parse-cli-server',

@@ -1,6 +1,8 @@
 import crypto from 'crypto';
 import path from 'path';
 
+import AppCache from 'parse-server/lib/cache';
+
 const DeployInfoBasePath = "_deployInfo";
 const DeployInfoCollectionName = "deployInfo";
 const FilesCollectionName = "deployFile";
@@ -13,8 +15,7 @@ function computeChecksum(content){
 }
 
 class ParseCliController {
-  constructor(config: any, vendorAdapter: any){
-    this.config = config || {};
+  constructor(vendorAdapter: any){
     this.vendorAdapter = vendorAdapter;
   }
 
@@ -76,24 +77,25 @@ class ParseCliController {
     return this.vendorAdapter.getEmail(accountKey);
   }
 
-  getJsVersions(){
-    return this.vendorAdapter.getJsVersions();
+  getJsVersions(appId){
+    return this.vendorAdapter.getJsVersions(appId);
   }
 
-  getApps() {
-    return this.vendorAdapter.getApps();
+  getApps(accountKey) {
+    return this.vendorAdapter.getApps(accountKey);
   }
 
-  getApp(applicationId) {
-    return this.vendorAdapter.getApp(applicationId);
+  getApp(accountKey, appId) {
+    return this.vendorAdapter.getApp(accountKey, appId);
   }
 
-  createApp(appName) {
-    return this.vendorAdapter.createApp(appName);
+  createApp(accountKey, appName) {
+    return this.vendorAdapter.createApp(accountKey, appName);
   }
 
-  getFile(folder, filename, version, checksum){
-    return this.config.databaseController.find(FilesCollectionName, {
+  getFile(appId, folder, filename, version, checksum){
+    let config = AppCache.get(appId);
+    return config.databaseController.find(FilesCollectionName, {
       folder: folder,
       filename: filename,
       version: version,
@@ -101,15 +103,16 @@ class ParseCliController {
     })
     .then(objects => {
       var object = objects[0];
-      return this.config.filesController.getFileData(this.config, object.name);
+      return config.filesController.getFileData(config, object.name);
     });
   }
 
-  uploadFile(folder, filename, content){
-    var key = path.join(folder, filename)
-    var checksum = computeChecksum(content);
+  uploadFile(appId, folder, filename, content){
+    let config = AppCache.get(appId),
+        key = path.join(folder, filename),
+        checksum = computeChecksum(content);
 
-    return this.config.databaseController.find(
+    return config.databaseController.find(
       FilesCollectionName, {
         folder: folder,
         filename: filename
@@ -129,11 +132,11 @@ class ParseCliController {
       }
       return nextVersion.toString();
     })
-    .then(version => this.config.filesController.createFile(
-        this.config,
+    .then(version => config.filesController.createFile(
+        config,
         path.join(DeployInfoBasePath, key),
         content)
-      .then(obj => this.config.databaseController.create(FilesCollectionName, {
+      .then(obj => config.databaseController.create(FilesCollectionName, {
           version: version,
           checksum: checksum,
           folder: folder,
@@ -146,8 +149,9 @@ class ParseCliController {
     );
   }
 
-  getDeployInfo(){
-    return this.config.databaseController.find(DeployInfoCollectionName, {}, {
+  getDeployInfo(appId){
+    let config = AppCache.get(appId);
+    return config.databaseController.find(DeployInfoCollectionName, {}, {
       sort: {createdAt: 1},
       limit: 1
     })
@@ -161,8 +165,9 @@ class ParseCliController {
     });
   }
 
-  setDeployInfo(deployInfo){
-    return this.config.databaseController.create(
+  setDeployInfo(appId, deployInfo){
+    let config = AppCache.get(appId);
+    return config.databaseController.create(
       DeployInfoCollectionName,
       this._patchDeployInfo(deployInfo));
   }
@@ -202,30 +207,30 @@ class ParseCliController {
     return deployInfo;
   }
 
-  _collect(deployInfo, folder){
+  _collect(appId, deployInfo, folder){
     var promises = Object.keys(deployInfo.userFiles[folder])
     .map(filename => {
       var version = deployInfo.userFiles[folder][filename],
         checksum = deployInfo.checksums[folder][filename];
-      return this.getFile(folder, filename, version, checksum)
+      return this.getFile(appId, folder, filename, version, checksum)
       .then(data => {
         return this.vendorAdapter.collect(
-          deployInfo, folder, filename, data);
+          appId, deployInfo, folder, filename, data);
       });
     });
     return Promise.all(promises);
   }
 
-  deploy(deployInfo){
+  deploy(appId, deployInfo){
     return this.getDeployInfo().then(currentDeployInfo => {
       var currentDeployInfoId = currentDeployInfo ? currentDeployInfo.releaseId : 0;
       var deployInfoId = currentDeployInfoId + 1;
       deployInfo.releaseId = deployInfoId;
       deployInfo.releaseName = "v" + deployInfoId;
-      return this._collect(deployInfo, 'cloud')
-      .then(() => this._collect(deployInfo, 'public'))
-      .then(() => this.setDeployInfo(deployInfo))
-      .then(() => this.vendorAdapter.publish(deployInfo))
+      return this._collect(appId, deployInfo, 'cloud')
+      .then(() => this._collect(appId, deployInfo, 'public'))
+      .then(() => this.setDeployInfo(appId, deployInfo))
+      .then(() => this.vendorAdapter.publish(appId, deployInfo))
       .then(() => deployInfo);
     });
   }
