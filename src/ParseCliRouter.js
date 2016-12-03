@@ -29,6 +29,16 @@ class ParseCliRouter extends PromiseRouter {
     this.controller = controller;
   } 
 
+  /*
+  Before execute any command, parse-cli check with the server
+  if it is supported.
+
+  Arguments are passed by query string.
+
+  mode="parse"
+  other=<command arguments>
+  version=<parse-cli version>
+  */
   isSupported(req) {
     var mode = req.query.mode,
         other = req.query.other,
@@ -111,6 +121,14 @@ class ParseCliRouter extends PromiseRouter {
     });
   }
 
+  /*
+  uploadFile body example:
+
+  {
+    "name" : "index.html",
+    "content": <base64 file content>
+  }
+  */
   uploadFile(req, folder){
     var decode = content => new Buffer(content, 'base64').toString('ascii'),
       filename = req.body.name,
@@ -159,6 +177,29 @@ class ParseCliRouter extends PromiseRouter {
     });
   }
 
+  /*
+  Deploy body example:
+
+  {
+    "parseVersion" : "1.9.2",
+    "checksums": {
+      "cloud": {
+        "main.js": "0e50654c95071583dcf707dda75ee6cc"
+      },
+      "public": {
+        "index.js": "a9d71ca772c4fb43973b93322f3c39a5"
+      }
+    },
+    "userFiles": {
+      "cloud": {
+        "main.js": "1"
+      },
+      "public": {
+        "index.js": "2"
+      }
+    }
+  }
+  */
   deploy(req) {
     return this.controller.deploy(req.config.applicationId, req.body)
     .then(deployInfo => {
