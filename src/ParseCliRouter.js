@@ -119,10 +119,10 @@ class ParseCliRouter extends PromiseRouter {
     return this.controller.uploadFile(
       req.config.applicationId,
       folder, filename, content)
-    .then(version => {
+    .then(obj => {
       return {
         response: {
-          version: version
+          version: obj.version
         }
       };
     });

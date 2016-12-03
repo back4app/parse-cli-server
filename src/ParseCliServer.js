@@ -8,7 +8,8 @@ import ParseCliRouter from './ParseCliRouter';
 import VendorAdapter from './VendorAdapter';
 
 class ParseCliServer {
-  constructor(config, {
+  constructor({
+    config,
     vendorAdapter,
     cloud,
     public_html
@@ -17,7 +18,8 @@ class ParseCliServer {
       AppCache.put(config.applicationId, config);
     }
     if (!vendorAdapter) {
-      vendorAdapter = new VendorAdapter(config, {
+      vendorAdapter = new VendorAdapter({
+        config: config,
         cloud: cloud,
         public_html: public_html
       });

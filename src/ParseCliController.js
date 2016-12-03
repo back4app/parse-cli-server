@@ -73,7 +73,6 @@ class ParseCliController {
   }
 
   getEmail(accountKey){
-    // return a promise with the email as result
     return this.vendorAdapter.getEmail(accountKey);
   }
 
@@ -145,7 +144,12 @@ class ParseCliController {
           url: obj.url
         })
       )
-      .then(() => version)
+      .then(() => {
+        return {
+          checksum: checksum,
+          version: version
+        };
+      })
     );
   }
 
@@ -222,16 +226,50 @@ class ParseCliController {
   }
 
   deploy(appId, deployInfo){
-    return this.getDeployInfo().then(currentDeployInfo => {
-      var currentDeployInfoId = currentDeployInfo ? currentDeployInfo.releaseId : 0;
-      var deployInfoId = currentDeployInfoId + 1;
-      deployInfo.releaseId = deployInfoId;
-      deployInfo.releaseName = "v" + deployInfoId;
-      return this._collect(appId, deployInfo, 'cloud')
-      .then(() => this._collect(appId, deployInfo, 'public'))
-      .then(() => this.setDeployInfo(appId, deployInfo))
-      .then(() => this.vendorAdapter.publish(appId, deployInfo))
-      .then(() => deployInfo);
+    return this._processFiles(appId, deployInfo)
+    .then(deployInfo => {
+      return this.getDeployInfo()
+      .then(currentDeployInfo => {
+        var currentDeployInfoId = currentDeployInfo ? currentDeployInfo.releaseId : 0;
+        var deployInfoId = currentDeployInfoId + 1;
+        deployInfo.releaseId = deployInfoId;
+        deployInfo.releaseName = "v" + deployInfoId;
+        return this._collect(appId, deployInfo, 'cloud')
+        .then(() => this._collect(appId, deployInfo, 'public'))
+        .then(() => this.setDeployInfo(appId, deployInfo))
+        .then(() => this.vendorAdapter.publish(appId, deployInfo))
+        .then(() => deployInfo);
+      });
+    });
+  }
+
+  _processFiles(appId, deployInfo){
+    if (!deployInfo.files){
+      return new Promise((resolve, reject) => {
+        resolve(deployInfo);
+      });
+    }
+    if (deployInfo.checksums || deployInfo.userFiles) {
+      throw new Error("Files must not be defined with checksums and userFiles.");
+    }
+    var promises = Object.keys(deployInfo.files)
+    .map(folder => {
+      var folderPromises = Object.keys(deployInfo.files[folder])
+      .map(filename => {
+        let content = deployInfo.files[folder][filename];
+        return this.uploadFile(appId, folder, filename, content)
+        .then(obj => {
+          deployInfo.checksums[folder] = deployInfo.checksums[folder] || {};
+          deployInfo.checksums[folder][filename] = obj.checksum;
+          deployInfo.userFiles[folder] = deployInfo.userFiles[folder] || {};
+          deployInfo.userFiles[folder][filename] = obj.version;
+        });
+      });
+      return Promise.all(folderPromises);
+    });
+    return Promise.all(promises).then(() => {
+      delete deployInfo.files;
+      return deployInfo;
     });
   }
 }

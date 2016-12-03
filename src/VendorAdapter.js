@@ -1,9 +1,12 @@
 import fs from 'fs.extra';
-import path from 'path';
 import os from 'os';
+import path from 'path';
+
+import { version } from 'parse-server/package.json'
 
 class VendorAdapter {
-  constructor(config, {
+  constructor({
+    config,
     cloud,
     public_html
   }) {
@@ -26,7 +29,7 @@ class VendorAdapter {
 
   getJsVersions(appId) {
     return new Promise((resolve, reject) => {
-      resolve(["1.9.2"]);
+      resolve([version]);
     });
   }
 
