@@ -34,7 +34,7 @@ class VendorAdapter {
   }
 
   getApps(accountKey){
-    return this.getApp(this.config.appId)
+    return this.getApp(accountKey, this.config.appId)
     .then(parseApp => [parseApp]);
   }
 
@@ -92,16 +92,19 @@ class VendorAdapter {
       }
       fs.walk(from)
       .on('file', (root, stat, next) => {
-        fs.copy(
-          path.join(root, stat.name),
-          path.join(to, stat.name),
-          {replace: true},
-          err => {
-            if (err) {
-              throw err;
-            }
-            next();
-          });
+        let toFile = path.join(to, stat.name);
+        fs.ensureDir(path.dirname(toFile), () => {
+          fs.copy(
+            path.join(root, stat.name),
+            toFile,
+            {replace: true},
+            err => {
+              if (err) {
+                throw err;
+              }
+              next();
+            });
+        });
       })
       .on('end', () => {
         resolve();
