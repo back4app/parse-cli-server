@@ -71,14 +71,14 @@ class VendorAdapter {
       deployInfo.releaseName,
       folder
     );
-    fs.mkdirp(deployPath, err =>{
+    return fs.mkdirp(deployPath, err =>{
       if (err) {
         throw err;
       }
       var filePath = path.join(deployPath, filename);
-      fs.writeFile(filePath, data, err => {
+      return fs.writeFile(filePath, data, err => {
         if(err) {
-            return console.log(err);
+          return console.log(err);
         }
       });
     });
@@ -115,7 +115,7 @@ class VendorAdapter {
       'parse-cli-server',
       deployInfo.releaseName
     );
-    this._copy(
+    return this._copy(
       path.join(deployPath, 'cloud'),
       path.dirname(this.cloud))
     .then(
