@@ -229,7 +229,11 @@ class ParseCliController {
   deploy(appId, deployInfo){
     return this._processFiles(appId, deployInfo)
     .then(deployInfo => {
-      return this.getDeployInfo()
+      deployInfo._checksum = computeChecksum(JSON.stringify(deployInfo));
+      return deployInfo;
+    })
+    .then(deployInfo => {
+      return this.getDeployInfo(appId)
       .then(currentDeployInfo => {
         var currentDeployInfoId = currentDeployInfo ? currentDeployInfo.releaseId : 0;
         var deployInfoId = currentDeployInfoId + 1;
@@ -237,8 +241,9 @@ class ParseCliController {
         deployInfo.releaseName = "v" + deployInfoId;
         return this._collect(appId, deployInfo, 'cloud')
         .then(() => this._collect(appId, deployInfo, 'public'))
-        .then(() => this.setDeployInfo(appId, deployInfo))
         .then(() => this.vendorAdapter.publish(appId, deployInfo))
+        .then(() => { delete deployInfo._checksum; })
+        .then(() => this.setDeployInfo(appId, deployInfo))
         .then(() => deployInfo);
       });
     });
@@ -246,9 +251,7 @@ class ParseCliController {
 
   _processFiles(appId, deployInfo){
     if (!deployInfo.files){
-      return new Promise((resolve, reject) => {
-        resolve(deployInfo);
-      });
+      return Promise.resolve(deployInfo);
     }
     if (deployInfo.checksums || deployInfo.userFiles) {
       throw new Error("Files must not be defined with checksums and userFiles.");
