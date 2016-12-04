@@ -84,6 +84,23 @@ class VendorAdapter {
     });
   }
 
+  _mkdir(dir) {
+    const splitPath = dir.split('/');
+    splitPath.reduce((path, subPath) => {
+      let currentPath;
+      if(subPath != '.') {
+        currentPath = path + '/' + subPath;
+        if (!fs.existsSync(currentPath)){
+          fs.mkdirSync(currentPath);
+        }
+      }
+      else {
+        currentPath = subPath;
+      }
+      return currentPath
+    }, '')
+  }
+
   _copy(from, to){
     return new Promise((resolve, reject) => {
       if (!to) {
@@ -93,10 +110,7 @@ class VendorAdapter {
       fs.walk(from)
       .on('file', (root, stat, next) => {
         let toFile = path.join(to, stat.name);
-        let toDir = path.dirname(toFile);
-        if (!fs.existsSync(toDir)){
-          fs.mkdirSync(toDir);
-        }
+        this._mkdir(path.dirname(toFile));
         fs.copy(
           path.join(root, stat.name),
           toFile,
