@@ -29,7 +29,10 @@
     "babel-register": "6.18.0"
   },
   "scripts": {
-    "build": "babel src/ -d lib/"
+    "dev": "npm run build && node bin/dev",
+    "build": "babel src/ -d lib/",
+    "start": "node ./bin/parse-server",
+    "prepublish": "npm run build"
   },
   "main": "lib/ParseCliServer.js"
 }
