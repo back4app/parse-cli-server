@@ -94,12 +94,14 @@ class ParseCliController {
 
   getFile(appId, folder, filename, version, checksum){
     let config = AppCache.get(appId);
-    return config.databaseController.find(FilesCollectionName, {
-      folder: folder,
-      filename: filename,
-      version: version,
-      checksum: checksum
-    })
+    return config.databaseController.find(
+      this.getCollectionName(appId, FilesCollectionName),
+      {
+        folder: folder,
+        filename: filename,
+        version: version,
+        checksum: checksum
+      })
     .then(objects => {
       var object = objects[0];
       return config.filesController.getFileData(config, object.name);
@@ -109,10 +111,9 @@ class ParseCliController {
   uploadFile(appId, folder, filename, content){
     let config = AppCache.get(appId),
         key = path.join(folder, filename),
-        checksum = computeChecksum(content);
-
-    return config.databaseController.find(
-      FilesCollectionName, {
+        checksum = computeChecksum(content),
+        filesCollectionName = this.getCollectionName(appId, FilesCollectionName);
+    return config.databaseController.find(filesCollectionName, {
         folder: folder,
         filename: filename
       }, {
@@ -133,17 +134,16 @@ class ParseCliController {
     })
     .then(version => config.filesController.createFile(
         config,
-        path.join(DeployInfoBasePath, key),
+        path.join(this.getBasePath(appId, DeployInfoBasePath), key),
         content)
-      .then(obj => config.databaseController.create(FilesCollectionName, {
-          version: version,
-          checksum: checksum,
-          folder: folder,
-          filename: filename,
-          name: obj.name,
-          url: obj.url
-        })
-      )
+      .then(obj => config.databaseController.create(filesCollectionName, {
+        version: version,
+        checksum: checksum,
+        folder: folder,
+        filename: filename,
+        name: obj.name,
+        url: obj.url
+      }))
       .then(() => {
         return {
           checksum: checksum,
@@ -155,7 +155,8 @@ class ParseCliController {
 
   getDeployInfo(appId){
     let config = AppCache.get(appId);
-    return config.databaseController.find(DeployInfoCollectionName, {}, {
+    return config.databaseController.find(
+      this.getCollectionName(appId, DeployInfoCollectionName), {}, {
       sort: {createdAt: 1},
       limit: 1
     })
@@ -172,7 +173,7 @@ class ParseCliController {
   setDeployInfo(appId, deployInfo){
     let config = AppCache.get(appId);
     return config.databaseController.create(
-      DeployInfoCollectionName,
+      this.getCollectionName(appId, DeployInfoCollectionName),
       this._patchDeployInfo(deployInfo));
   }
 
@@ -271,6 +272,18 @@ class ParseCliController {
       delete deployInfo.files;
       return deployInfo;
     });
+  }
+
+  getCollectionName(appId, collectionName) {
+    return this.vendorAdapter.getCollectionName ?
+      this.vendorAdapter.getCollectionName(appId, collectionName) :
+      collectionName;
+  }
+
+  getBasePath(appId, basePath) {
+    return this.vendorAdapter.getBasePath ?
+      this.vendorAdapter.getBasePath(appId, basePath) :
+      basePath;
   }
 }
 

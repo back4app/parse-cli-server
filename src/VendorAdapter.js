@@ -126,6 +126,16 @@ class VendorAdapter {
       console.log("Published!")
     });
   }
+
+  // optional collectionName customization
+  getCollectionName(appId, collectionName){
+    return collectionName;
+  }
+
+  // optional basePath customization
+  getBasePath(appId, basePath){
+    return basePath;
+  }
 }
 
 export default VendorAdapter;
