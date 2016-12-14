@@ -37,7 +37,7 @@ class ParseCliServer {
     express request length limit is very low. Change limit value
     for fix 'big' files deploy problems.
     */
-    let limit = '50mb';
+    let limit = '500mb';
     app.use(bodyParser.json({type: function() { return true; }, limit: limit}));
     app.use(bodyParser.urlencoded({limit: limit, extend: true}));
 
