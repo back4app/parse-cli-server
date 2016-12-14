@@ -17,7 +17,7 @@ class ParseCliServer {
     if (config) {
       AppCache.put(config.applicationId, config);
       if (config.limit != undefined) {
-        this.length_limit = limit;
+        this.length_limit = config.limit;
       } else {
         this.length_limit = '500mb';
       }
