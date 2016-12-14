@@ -21,6 +21,8 @@ class ParseCliServer {
       } else {
         this.length_limit = '500mb';
       }
+    } else {
+      this.length_limit = '500mb';
     }
     if (!vendorAdapter) {
       vendorAdapter = new VendorAdapter({
