@@ -16,6 +16,11 @@ class ParseCliServer {
   }) {
     if (config) {
       AppCache.put(config.applicationId, config);
+      if (config.limit != undefined) {
+        this.length_limit = limit;
+      } else {
+        this.length_limit = '500mb';
+      }
     }
     if (!vendorAdapter) {
       vendorAdapter = new VendorAdapter({
@@ -37,9 +42,7 @@ class ParseCliServer {
     express request length limit is very low. Change limit value
     for fix 'big' files deploy problems.
     */
-    let limit = '500mb';
-    app.use(bodyParser.json({type: function() { return true; }, limit: limit}));
-    app.use(bodyParser.urlencoded({limit: limit, extend: true}));
+    app.use(bodyParser.json({type: function() { return true; }, limit: this.length_limit}));
 
     this.router.mountOnto(app);
     return app;
