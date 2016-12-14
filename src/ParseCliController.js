@@ -107,7 +107,11 @@ class ParseCliController {
       })
     .then(objects => {
       var object = objects[0];
-      return config.filesController.getFileData(config, object.name);
+        if (object != undefined) {
+            return config.filesController.getFileData(config, object.name);
+        } else {
+            return null; // This fix the problem of empty file upload.
+        }
     });
   }
 
