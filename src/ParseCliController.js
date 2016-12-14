@@ -72,6 +72,9 @@ class ParseCliController {
     });
   }
 
+  getAccountKey(email, password){
+    return this.vendorAdapter.getAccountKey(email, password);
+  }
   getEmail(accountKey){
     return this.vendorAdapter.getEmail(accountKey);
   }

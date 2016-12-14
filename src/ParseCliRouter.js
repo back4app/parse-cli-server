@@ -27,7 +27,39 @@ class ParseCliRouter extends PromiseRouter {
   constructor(controller: any){
     super();
     this.controller = controller;
-  } 
+  }
+
+  promiseEnforceAccountKeyAccess(req) {
+    return new Promise((resolve, reject) => {
+      let accountKey = req.get('X-Parse-Account-Key');
+      if (accountKey) {
+        return resolve(accountKey);
+      }
+      else {
+        let email = req.get('X-Parse-Email');
+        let password = req.get('X-Parse-Password');
+        return this.controller.getAccountKey(email, password)
+        .then(accountKey => {
+          if (accountKey) {
+            return resolve(accountKey)
+          }
+          else {
+            return reject("invalid email and password");
+          }
+        });
+      }
+    }).then(accountKey => {
+      if (!req.config) {
+        req.config = {};
+      }
+      req.config.accountKey = accountKey;
+    }).catch(error => {
+      let errorObj = new Error();
+      errorObj.status = 400;
+      errorObj.message = error;
+      throw errorObj;
+    });
+  }
 
   /*
   Before execute any command, parse-cli check with the server
@@ -90,8 +122,7 @@ class ParseCliRouter extends PromiseRouter {
   }
 
   getApps(req) {
-    let accountKey = req.get('X-Parse-Account-Key');
-    return this.controller.getApps(accountKey)
+    return this.controller.getApps(req.config.accountKey)
     .then(parseApps => {
       return {
         response: {
@@ -102,9 +133,8 @@ class ParseCliRouter extends PromiseRouter {
   }
 
   getApp(req){
-    let accountKey = req.get('X-Parse-Account-Key');
     var applicationId = req.params.applicationId;
-    return this.controller.getApp(accountKey, applicationId)
+    return this.controller.getApp(req.config.accountKey, applicationId)
     .then(parseApp => {
       return {
         response: parseApp
@@ -113,9 +143,8 @@ class ParseCliRouter extends PromiseRouter {
   }
 
   createApp(req){
-    let accountKey = req.get('X-Parse-Account-Key');
     var appName = req.body.appName;
-    return this.controller.createApp(accountKey, appName)
+    return this.controller.createApp(req.config.accountKey, appName)
     .then(parseApp => {
       return {response: parseApp};
     });
@@ -229,14 +258,17 @@ class ParseCliRouter extends PromiseRouter {
     this.route(
       'GET',
       '/apps',
+      req => this.promiseEnforceAccountKeyAccess(req),
       req => this.getApps(req));
     this.route(
       'GET',
       '/apps/:applicationId',
+      req => this.promiseEnforceAccountKeyAccess(req),
       req => this.getApp(req));
     this.route(
       'POST',
       '/apps',
+      req => this.promiseEnforceAccountKeyAccess(req),
       req => this.createApp(req));
 
     this.route(

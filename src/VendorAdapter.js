@@ -15,6 +15,11 @@ class VendorAdapter {
     this.public_html = public_html;
   }
 
+  getAccountKey(email, password) {
+    return Promise.resolve(
+      password == this.config.masterKey ? 'ACCOUNT_KEY_' + email : null);
+  }
+
   getEmail(accountKey) {
     return new Promise((resolve, reject) => {
       if (accountKey == this.config.masterKey) {
