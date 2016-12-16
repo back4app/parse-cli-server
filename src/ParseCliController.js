@@ -268,7 +268,7 @@ class ParseCliController {
     if (deployInfo.checksums === undefined)
       deployInfo.checksums = {};
     if (deployInfo.userFiles === undefined)
-      deployInfo.userFiles {};
+      deployInfo.userFiles = {};
 
     var promises = Object.keys(deployInfo.files)
     .map(folder => {
