@@ -15,6 +15,11 @@ class VendorAdapter {
     this.public_html = public_html;
   }
 
+  getAccountKey(email, password) {
+    return Promise.resolve(
+      password == this.config.masterKey ? 'ACCOUNT_KEY_' + email : null);
+  }
+
   getEmail(accountKey) {
     return new Promise((resolve, reject) => {
       if (accountKey == this.config.masterKey) {
@@ -84,23 +89,6 @@ class VendorAdapter {
     });
   }
 
-  _mkdir(dir) {
-    const splitPath = dir.split('/');
-    splitPath.reduce((path, subPath) => {
-      let currentPath;
-      if(subPath != '.') {
-        currentPath = path + '/' + subPath;
-        if (!fs.existsSync(currentPath)){
-          fs.mkdirSync(currentPath);
-        }
-      }
-      else {
-        currentPath = subPath;
-      }
-      return currentPath
-    }, '')
-  }
-
   _copy(from, to){
     return new Promise((resolve, reject) => {
       if (!to) {
@@ -110,17 +98,21 @@ class VendorAdapter {
       fs.walk(from)
       .on('file', (root, stat, next) => {
         let toFile = path.join(to, stat.name);
-        this._mkdir(path.dirname(toFile));
-        fs.copy(
-          path.join(root, stat.name),
-          toFile,
-          {replace: true},
-          err => {
-            if (err) {
-              throw err;
-            }
-            next();
-          });
+        fs.mkdirp(path.dirname(toFile), err => {
+          if (err) {
+            throw err;
+          }
+          fs.copy(
+            path.join(root, stat.name),
+            toFile,
+            {replace: true},
+            err => {
+              if (err) {
+                throw err;
+              }
+              next();
+            });
+        })
       })
       .on('end', () => {
         resolve();
