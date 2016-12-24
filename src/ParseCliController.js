@@ -33,19 +33,19 @@ class ParseCliController {
         "version",
       ],
       commands = [
+        "add",
         "configure accountkey",
-        "new",
         "deploy",
         "develop",
         "download",
-      ],
-      nokCommands = [
-        "add",
-        "functions",
         "jssdk",
         "list",
-        "logs",
+        "new",
         "releases",
+      ],
+      nokCommands = [
+        "functions",
+        "logs",
         "rollback",
         "symbols",
         "triggers",
@@ -301,6 +301,30 @@ class ParseCliController {
     return this.vendorAdapter.getBasePath ?
       this.vendorAdapter.getBasePath(appId, basePath) :
       basePath;
+  }
+
+  getReleases(appId) {
+    let config = AppCache.get(appId);
+    return config.databaseController.find(
+      this.getCollectionName(appId, DeployInfoCollectionName), {}, {
+      sort: {createdAt: 1}
+    })
+    .then(results => {
+      return results.map(deployInfo => {
+        return this._unpatchDeployInfo(deployInfo);
+      });
+    })
+    .then(results => {
+      return results.map(deployInfo => {
+        return {
+          version: deployInfo.releaseName,
+          description: deployInfo.description,
+          timestamp: deployInfo.createdAt,
+          // parse-cli expects a string for no reason
+          userFiles: JSON.stringify(deployInfo.userFiles),
+        };
+      });
+    });
   }
 }
 

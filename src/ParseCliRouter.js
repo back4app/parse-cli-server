@@ -240,6 +240,15 @@ class ParseCliRouter extends PromiseRouter {
     });
   }
 
+  getReleases(req) {
+    return this.controller.getReleases(req.config.applicationId)
+    .then(releases => {
+      return {
+        response: releases
+      }
+    });
+  }
+
   mountRoutes() {
     this.route(
       'GET',
@@ -311,6 +320,13 @@ class ParseCliRouter extends PromiseRouter {
       promiseHandleParseHeaders,
       middlewares.promiseEnforceMasterKeyAccess,
       req => this.deploy(req));
+
+    this.route(
+      'GET',
+      '/releases',
+      promiseHandleParseHeaders,
+      middlewares.promiseEnforceMasterKeyAccess,
+      req => this.getReleases(req));
   }
 }
 
