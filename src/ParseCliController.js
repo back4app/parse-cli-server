@@ -38,17 +38,17 @@ class ParseCliController {
         "deploy",
         "develop",
         "download",
+        "functions",
         "jssdk",
         "list",
         "new",
         "releases",
+        "triggers",
       ],
       nokCommands = [
-        "functions",
         "logs",
         "rollback",
         "symbols",
-        "triggers",
       ],
       tokens = {};
       localCommands.forEach(value => {
