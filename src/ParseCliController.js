@@ -265,10 +265,12 @@ class ParseCliController {
     }
 
     // Prevent deploy request error from dashboard.
-    if (deployInfo.checksums === undefined)
+    if (deployInfo.checksums === undefined) {
       deployInfo.checksums = {};
-    if (deployInfo.userFiles === undefined)
+    }
+    if (deployInfo.userFiles === undefined) {
       deployInfo.userFiles = {};
+    }
 
     var promises = Object.keys(deployInfo.files)
     .map(folder => {
