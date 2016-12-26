@@ -6,6 +6,7 @@ import AppCache from 'parse-server/lib/cache';
 import ParseCliController from './ParseCliController';
 import ParseCliRouter from './ParseCliRouter';
 import HooksRouter from './HooksRouter';
+import LogsRouter from './LogsRouter';
 import VendorAdapter from './VendorAdapter';
 
 class ParseCliServer {
@@ -50,6 +51,9 @@ class ParseCliServer {
 
     let hooksRouter = new HooksRouter();
     hooksRouter.mountOnto(app);
+
+    let logsRouter = new LogsRouter();
+    logsRouter.mountOnto(app);
 
     return app;
   }

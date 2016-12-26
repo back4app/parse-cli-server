@@ -41,12 +41,12 @@ class ParseCliController {
         "functions",
         "jssdk",
         "list",
+        "logs",
         "new",
         "releases",
         "triggers",
       ],
       nokCommands = [
-        "logs",
         "rollback",
         "symbols",
       ],
