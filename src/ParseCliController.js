@@ -263,6 +263,13 @@ class ParseCliController {
     if (deployInfo.checksums || deployInfo.userFiles) {
       throw new Error("Files must not be defined with checksums and userFiles.");
     }
+
+    // Prevent deploy request error from dashboard.
+    if (deployInfo.checksums === undefined)
+      deployInfo.checksums = {};
+    if (deployInfo.userFiles === undefined)
+      deployInfo.userFiles = {};
+
     var promises = Object.keys(deployInfo.files)
     .map(folder => {
       var folderPromises = Object.keys(deployInfo.files[folder])
