@@ -249,6 +249,11 @@ class ParseCliRouter extends PromiseRouter {
     });
   }
 
+  symbolFiles(req) {
+    // TODO: understand what this command should do
+    throw new Error("symbols upload is not implemented.");
+  }
+
   mountRoutes() {
     this.route(
       'GET',
@@ -327,6 +332,11 @@ class ParseCliRouter extends PromiseRouter {
       promiseHandleParseHeaders,
       middlewares.promiseEnforceMasterKeyAccess,
       req => this.getReleases(req));
+
+    this.route(
+      'POST',
+      '/symbolFiles/:name',
+      req => this.symbolFiles(req));
   }
 }
 

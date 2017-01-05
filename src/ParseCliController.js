@@ -44,10 +44,10 @@ class ParseCliController {
         "logs",
         "new",
         "releases",
+        "rollback",
         "triggers",
       ],
       nokCommands = [
-        "rollback",
         "symbols",
       ],
       tokens = {};
@@ -160,13 +160,16 @@ class ParseCliController {
     );
   }
 
-  getDeployInfo(appId){
+  _findDeployInfo(appId, query, sort) {
     let config = AppCache.get(appId);
-    return config.databaseController.find(
-      this.getCollectionName(appId, DeployInfoCollectionName), {}, {
-      sort: {createdAt: 1},
+    let options = {
+      sort: sort,
       limit: 1
-    })
+    }
+    return config.databaseController.find(
+      this.getCollectionName(appId, DeployInfoCollectionName),
+      query,
+      options)
     .then(results => {
       return results.map(deployInfo => {
         return this._unpatchDeployInfo(deployInfo);
@@ -177,11 +180,26 @@ class ParseCliController {
     });
   }
 
-  setDeployInfo(appId, deployInfo){
+  getDeployInfo(appId){
+    return this._findDeployInfo(appId, {}, {deployedAt: -1, createdAt: -1});
+  }
+
+  _setDeployInfo(appId, deployInfo){
     let config = AppCache.get(appId);
-    return config.databaseController.create(
-      this.getCollectionName(appId, DeployInfoCollectionName),
-      this._patchDeployInfo(deployInfo));
+    let className = this.getCollectionName(appId, DeployInfoCollectionName);
+    let query = {releaseId: deployInfo.releaseId};
+    if (deployInfo.createdAt) {
+      return config.databaseController.update(
+        className, query, {deployedAt: new Date()});
+    }
+    else {
+      deployInfo.createdAt = new Date();
+      deployInfo.deployedAt = deployInfo.createdAt;
+
+      return config.databaseController.create(
+        className,
+        this._patchDeployInfo(deployInfo));
+    }
   }
 
   // Patch deployInfo to avoid keys invalid chars, like dots in filenames.
@@ -234,26 +252,68 @@ class ParseCliController {
   }
 
   deploy(appId, deployInfo){
-    return this._processFiles(appId, deployInfo)
-    .then(deployInfo => {
+    return this._processRollback(appId, deployInfo)
+    .then(di => {
+      deployInfo = di;
+      return this._processFiles(appId, di);
+    })
+    .then(() => {
       deployInfo._checksum = computeChecksum(JSON.stringify(deployInfo));
       return deployInfo;
     })
+    .then(di => this._setReleaseMetadata(appId, di))
+    .then(() => this._collect(appId, deployInfo, 'cloud'))
+    .then(() => this._collect(appId, deployInfo, 'public'))
+    .then(() => this.vendorAdapter.publish(appId, deployInfo))
+    .then(() => {
+      delete deployInfo._checksum;
+      return deployInfo;
+    })
+    .then(() => {
+      return this._setDeployInfo(appId, deployInfo);
+    })
+    .then(() => deployInfo);
+  }
+
+  _getNextReleaseId(appId) {
+    return this._findDeployInfo(appId, {}, {releaseId: -1})
     .then(deployInfo => {
-      return this.getDeployInfo(appId)
-      .then(currentDeployInfo => {
-        var currentDeployInfoId = currentDeployInfo ? currentDeployInfo.releaseId : 0;
-        var deployInfoId = currentDeployInfoId + 1;
-        deployInfo.releaseId = deployInfoId;
-        deployInfo.releaseName = "v" + deployInfoId;
-        return this._collect(appId, deployInfo, 'cloud')
-        .then(() => this._collect(appId, deployInfo, 'public'))
-        .then(() => this.vendorAdapter.publish(appId, deployInfo))
-        .then(() => { delete deployInfo._checksum; })
-        .then(() => this.setDeployInfo(appId, deployInfo))
-        .then(() => deployInfo);
-      });
+      let currentReleaseId = deployInfo ? deployInfo.releaseId : 0;
+      return parseInt(currentReleaseId) + 1;
     });
+  }
+
+  _setReleaseMetadata(appId, deployInfo) {
+    if (deployInfo.releaseId) {
+      return Promise.resolve(deployInfo);
+    }
+    return this._getNextReleaseId(appId)
+    .then(deployInfoId => {
+      deployInfo.releaseId = deployInfoId;
+      deployInfo.releaseName = "v" + deployInfoId;
+      return deployInfo;
+    });
+  }
+
+  _processRollback(appId, deployInfo){
+    if (deployInfo.releaseName === undefined) {
+      // it is not a rollback
+      return Promise.resolve(deployInfo);
+    }
+    else if (deployInfo.releaseName === "") {
+      // rollback to deploy before the current one
+      return this.getDeployInfo(appId)
+      .then(deployInfo => this._findDeployInfo(
+        appId,
+        {releaseId: {"$lt": deployInfo.releaseId}},
+        {releaseId: -1}));
+    }
+    else {
+      return this._findDeployInfo(
+        appId,
+        {releaseName: deployInfo.releaseName},
+        {deployedAt: -1});
+    }
   }
 
   _processFiles(appId, deployInfo){
@@ -274,7 +334,7 @@ class ParseCliController {
 
     var promises = Object.keys(deployInfo.files)
     .map(folder => {
-      var folderPromises = Object.keys(deployInfo.files[folder])
+      var folderPromises = Object.keys(deployInfo.files[folder] || {})
       .map(filename => {
         let content = deployInfo.files[folder][filename];
         return this.uploadFile(appId, folder, filename, content)
