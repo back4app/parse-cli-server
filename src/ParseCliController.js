@@ -188,13 +188,13 @@ class ParseCliController {
     let config = AppCache.get(appId);
     let className = this.getCollectionName(appId, DeployInfoCollectionName);
     let query = {releaseId: deployInfo.releaseId};
+    let now = new Date().toISOString();
     if (deployInfo.createdAt) {
       return config.databaseController.update(
-        className, query, {deployedAt: new Date()});
+        className, query, {deployedAt: now});
     }
     else {
-      deployInfo.createdAt = new Date();
-      deployInfo.deployedAt = deployInfo.createdAt;
+      deployInfo.deployedAt = deployInfo.createdAt = now;
 
       return config.databaseController.create(
         className,
