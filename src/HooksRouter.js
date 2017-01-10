@@ -1,5 +1,6 @@
 import { HooksRouter as _HooksRouter } from 'parse-server/lib/Routers/HooksRouter';
 import * as middlewares from "parse-server/lib/middlewares";
+const express = require('express');
 
 export default class HooksRouter extends _HooksRouter {
 
@@ -22,7 +23,9 @@ export default class HooksRouter extends _HooksRouter {
     }
 
     mountOnto(app) {
-        app.use('/hooks/', middlewares.handleParseHeaders);
-        return super.mountOnto(app);
+        var hooksApp = express();
+        hooksApp.use('/hooks', middlewares.handleParseHeaders);
+        super.mountOnto(hooksApp);
+        return app.use('/1', hooksApp);
     }
 }
