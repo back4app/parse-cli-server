@@ -55,8 +55,12 @@ class ParseCliRouter extends PromiseRouter {
       req.config.accountKey = accountKey;
     }).catch(error => {
       let errorObj = new Error();
-      errorObj.status = 400;
-      errorObj.message = error;
+      if (error === 'invalid email and password') {
+        errorObj.status = 401;
+      } else {
+        errorObj.status = 400;
+      }
+        errorObj.message = error;
       throw errorObj;
     });
   }
