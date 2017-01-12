@@ -41,9 +41,8 @@ class ParseCliRouter extends PromiseRouter {
         return this.controller.getAccountKey(email, password)
         .then(accountKey => {
           if (accountKey) {
-            return resolve(accountKey)
-          }
-          else {
+            return resolve(accountKey);
+          } else {
             return reject("invalid email and password");
           }
         });
@@ -60,7 +59,7 @@ class ParseCliRouter extends PromiseRouter {
       } else {
         errorObj.status = 400;
       }
-        errorObj.message = error;
+      errorObj.message = error;
       throw errorObj;
     });
   }

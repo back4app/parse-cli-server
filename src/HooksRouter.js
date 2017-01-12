@@ -15,7 +15,6 @@ export default class HooksRouter extends _HooksRouter {
   }
 
   _patchResponse(response) {
-    console.log(response);
     return {
       response: {
         results: response.response,

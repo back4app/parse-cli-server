@@ -1,4 +1,4 @@
-import fs from 'fs.extra';
+import fs from 'fs-extra';
 import os from 'os';
 import path from 'path';
 
@@ -96,23 +96,24 @@ class VendorAdapter {
         return;
       }
       fs.walk(from)
-      .on('file', (root, stat, next) => {
-        let toFile = path.join(to, stat.name);
-        fs.mkdirp(path.dirname(toFile), err => {
-          if (err) {
-            throw err;
-          }
-          fs.copy(
-            path.join(root, stat.name),
-            toFile,
-            {replace: true},
-            err => {
-              if (err) {
-                throw err;
-              }
-              next();
-            });
-        })
+      .on('data', (item) => {
+        if (item.path !== from) {
+          let toFile = path.join(to, item.path.split(from)[1]);
+          fs.createFile(to, err => {
+            if (err) {
+              throw err;
+            }
+            fs.copy(
+              item.path,
+              toFile,
+              {replace: true},
+              err => {
+                if (err) {
+                  throw err;
+                }
+              });
+          })
+        }
       })
       .on('end', () => {
         resolve();
