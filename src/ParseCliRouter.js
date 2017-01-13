@@ -60,6 +60,7 @@ class ParseCliRouter extends PromiseRouter {
         errorObj.status = 400;
       }
       errorObj.message = error;
+
       throw errorObj;
     });
   }
