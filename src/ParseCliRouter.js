@@ -41,9 +41,8 @@ class ParseCliRouter extends PromiseRouter {
         return this.controller.getAccountKey(email, password)
         .then(accountKey => {
           if (accountKey) {
-            return resolve(accountKey)
-          }
-          else {
+            return resolve(accountKey);
+          } else {
             return reject("invalid email and password");
           }
         });
@@ -60,7 +59,8 @@ class ParseCliRouter extends PromiseRouter {
       } else {
         errorObj.status = 400;
       }
-        errorObj.message = error;
+      errorObj.message = error;
+
       throw errorObj;
     });
   }
@@ -183,9 +183,16 @@ class ParseCliRouter extends PromiseRouter {
 
   getFile(req, folder, options){
     var options = options || {},
-      filename = req.params.filename,
       version = req.query.version,
+      filename,
       checksum = req.query.checksum;
+
+    if (folder === 'cloud')
+      filename = /\/scripts\/(.+)\?checksum/.exec(req.url)[1];
+    else filename = /\/hosted_files\/(.+)\?checksum/.exec(req.url)[1];
+
+    console.log('File:', filename);
+
     return this.controller.getFile(
       req.config.applicationId,
       folder, filename, version, checksum)
@@ -299,7 +306,7 @@ class ParseCliRouter extends PromiseRouter {
       req => this.uploadFile(req, 'cloud'));
     this.route(
       'GET',
-      '/scripts/:filename',
+      '/scripts/*',
       promiseHandleParseHeaders,
       middlewares.promiseEnforceMasterKeyAccess,
       req => this.getFile(req, 'cloud'));
@@ -311,7 +318,7 @@ class ParseCliRouter extends PromiseRouter {
       req => this.uploadFile(req, 'public'));
     this.route(
       'GET',
-      '/hosted_files/:filename',
+      '/hosted_files/*',
       promiseHandleParseHeaders,
       middlewares.promiseEnforceMasterKeyAccess,
       // public folder must be base64 encoded

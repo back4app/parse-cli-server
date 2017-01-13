@@ -238,7 +238,7 @@ class ParseCliController {
   }
 
   _collect(appId, deployInfo, folder){
-    var promises = Object.keys(deployInfo.userFiles[folder])
+    var promises = Object.keys(deployInfo.userFiles[folder] || {})
     .map(filename => {
       var version = deployInfo.userFiles[folder][filename],
         checksum = deployInfo.checksums[folder][filename];
@@ -248,6 +248,7 @@ class ParseCliController {
           appId, deployInfo, folder, filename, data);
       });
     });
+
     return Promise.all(promises);
   }
 
@@ -337,13 +338,14 @@ class ParseCliController {
       var folderPromises = Object.keys(deployInfo.files[folder] || {})
       .map(filename => {
         let content = deployInfo.files[folder][filename];
+
         return this.uploadFile(appId, folder, filename, content)
-        .then(obj => {
-          deployInfo.checksums[folder] = deployInfo.checksums[folder] || {};
-          deployInfo.checksums[folder][filename] = obj.checksum;
-          deployInfo.userFiles[folder] = deployInfo.userFiles[folder] || {};
-          deployInfo.userFiles[folder][filename] = obj.version;
-        });
+          .then(obj => {
+            deployInfo.checksums[folder] = deployInfo.checksums[folder] || {};
+            deployInfo.checksums[folder][filename] = obj.checksum;
+            deployInfo.userFiles[folder] = deployInfo.userFiles[folder] || {};
+            deployInfo.userFiles[folder][filename] = obj.version;
+          });
       });
       return Promise.all(folderPromises);
     });

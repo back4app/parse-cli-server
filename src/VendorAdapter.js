@@ -1,4 +1,4 @@
-import fs from 'fs.extra';
+import fs from 'fs-extra';
 import os from 'os';
 import path from 'path';
 
@@ -76,12 +76,12 @@ class VendorAdapter {
       deployInfo.releaseName,
       folder
     );
-    return fs.mkdirp(deployPath, err =>{
+    return fs.ensureDir(deployPath, err =>{
       if (err) {
         throw err;
       }
       var filePath = path.join(deployPath, filename);
-      return fs.writeFile(filePath, data, err => {
+      return fs.outputFile(filePath, data, err => {
         if(err) {
           return console.log(err);
         }
@@ -95,28 +95,36 @@ class VendorAdapter {
         resolve();
         return;
       }
+
       fs.walk(from)
-      .on('file', (root, stat, next) => {
-        let toFile = path.join(to, stat.name);
-        fs.mkdirp(path.dirname(toFile), err => {
-          if (err) {
-            throw err;
+        .on('data', (item) => {
+          if (item.path !== from) {
+            let toFile = path.join(to, item.path.split(from)[1]);
+            if (!item.stats.isDirectory()) {
+              fs.createFile(toFile, err => {
+                if (err) {
+                  throw err;
+                }
+                fs.copy(
+                  item.path,
+                  toFile,
+                  {clobber: true},
+                  err => {
+                    if (err) {
+                      throw err;
+                    }
+                  });
+              })
+            } else {
+              fs.ensureDir(toFile, err => {
+                if (err) throw err;
+              });
+            }
           }
-          fs.copy(
-            path.join(root, stat.name),
-            toFile,
-            {replace: true},
-            err => {
-              if (err) {
-                throw err;
-              }
-              next();
-            });
         })
-      })
-      .on('end', () => {
-        resolve();
-      });
+        .on('end', () => {
+          resolve();
+        });
     });
   }
 
