@@ -110,7 +110,7 @@ class ParseCliController {
         if (object != undefined) {
             return config.filesController.getFileData(config, object.name);
         } else {
-            return null; // This fix the problem of empty file upload.
+            return ' '; // This fix the problem of empty file upload, must return string.
         }
     });
   }
