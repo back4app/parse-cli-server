@@ -20,6 +20,10 @@ class ParseCliController {
   }
 
   isSupported(mode, other, version){
+    if (version == 'latest') {
+      return this.vendorAdapter.getCliLatestVersion();
+    }
+
     return new Promise((resolve, reject) => {
       // local commands must be defined
       var localCommands = [
