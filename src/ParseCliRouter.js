@@ -163,15 +163,17 @@ class ParseCliRouter extends PromiseRouter {
   }
   */
   uploadFile(req, folder){
-    var decode = content => new Buffer(content, 'base64').toString('ascii');
-    var filename = req.body.name, content = '';
+    var decode = content => new Buffer(content, 'base64').toString('binary');
+    var filename = req.body.name,
+        content = '',
+        contentType = req.headers['content-type'];
     if (req.body.content != null) {
         content = decode(req.body.content);
     }
 
     return this.controller.uploadFile(
         req.config.applicationId,
-        folder, filename, content)
+        folder, filename, content, contentType)
         .then(obj => {
           return {
             response: {
