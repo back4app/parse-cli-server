@@ -100,30 +100,33 @@ class ParseCliController {
   }
 
   getFile(appId, folder, filename, version, checksum){
-    let config = AppCache.get(appId);
+    let config = AppCache.get(appId),
+        query = { folder, filename, version, checksum };
     return config.databaseController.find(
       this.getCollectionName(appId, FilesCollectionName),
-      {
-        folder: folder,
-        filename: filename,
-        version: version,
-        checksum: checksum
-      })
+      query)
     .then(objects => {
+      if (objects.length == 0) {
+        throw new Error("Object " + JSON.stringify(query) + " not found.");
+      }
       var object = objects[0];
-        if (object != undefined) {
-            return config.filesController.getFileData(config, object.name);
-        } else {
-            return ' '; // This fix the problem of empty file upload, must return string.
+      return config.filesController.getFileData(config, object.name)
+      .then(data => {
+        if (object.encoding == 'base64') {
+          data = new Buffer(data.toString(), 'base64');
         }
+        return data;
+      });
     });
   }
 
   uploadFile(appId, folder, filename, content){
     let config = AppCache.get(appId),
         key = path.join(folder, filename),
-        checksum = computeChecksum(content),
+        binaryContent = new Buffer(content, 'base64').toString('binary'),
+        checksum = computeChecksum(binaryContent),
         filesCollectionName = this.getCollectionName(appId, FilesCollectionName);
+
     return config.databaseController.find(filesCollectionName, {
         folder: folder,
         filename: filename
@@ -153,7 +156,8 @@ class ParseCliController {
         folder: folder,
         filename: filename,
         name: obj.name,
-        url: obj.url
+        url: obj.url,
+        encoding: 'base64',
       }))
       .then(() => {
         return {
