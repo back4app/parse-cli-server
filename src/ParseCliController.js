@@ -100,6 +100,10 @@ class ParseCliController {
   }
 
   getFile(appId, folder, filename, version, checksum){
+    try {
+      filename = decodeURIComponent(filename)
+    } catch (err) {}
+
     let config = AppCache.get(appId),
         query = { folder, filename, version, checksum };
     return config.databaseController.find(
@@ -121,6 +125,7 @@ class ParseCliController {
   }
 
   uploadFile(appId, folder, filename, content){
+
     let config = AppCache.get(appId),
         key = path.join(folder, filename),
         binaryContent = new Buffer(content, 'base64').toString('binary'),
