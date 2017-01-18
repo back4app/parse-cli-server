@@ -120,35 +120,12 @@ class VendorAdapter {
         return;
       }
 
-      fs.walk(from)
-        .on('data', (item) => {
-          if (item.path !== from) {
-            let toFile = path.join(to, item.path.split(from)[1]);
-            if (!item.stats.isDirectory()) {
-              fs.createFile(toFile, err => {
-                if (err) {
-                  throw err;
-                }
-                fs.copy(
-                  item.path,
-                  toFile,
-                  {clobber: true},
-                  err => {
-                    if (err) {
-                      throw err;
-                    }
-                  });
-              })
-            } else {
-              fs.ensureDir(toFile, err => {
-                if (err) throw err;
-              });
-            }
-          }
-        })
-        .on('end', () => {
-          resolve();
-        });
+      fs.copy(from, to, err => {
+        if (err) {
+          throw err;
+        }
+        resolve();
+      });
     });
   }
 
