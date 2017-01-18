@@ -167,10 +167,6 @@ class ParseCliRouter extends PromiseRouter {
         content = req.body.content,
         contentType = req.headers['content-type'];
 
-    try {
-      filename = decodeURI(filename);
-    } catch (err) {}
-
     return this.controller.uploadFile(
         req.config.applicationId,
         folder, filename, content, contentType)

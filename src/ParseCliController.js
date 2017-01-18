@@ -125,9 +125,6 @@ class ParseCliController {
   }
 
   uploadFile(appId, folder, filename, content){
-    try {
-      filename = decodeURIComponent(filename);
-    } catch (err) {}
 
     let config = AppCache.get(appId),
         key = path.join(folder, filename),
