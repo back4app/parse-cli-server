@@ -74,7 +74,7 @@ describe('ParseCliServer', () => {
         'X-Parse-Email': 'test@example.com',
         'X-Parse-Password': '42',
       }, res => {
-        expect(res.statusCode).toEqual(400);
+        expect(res.statusCode).toMatch(/40[0-1]/);
         done();
       });
     });
