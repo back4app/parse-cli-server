@@ -189,6 +189,8 @@ class ParseCliRouter extends PromiseRouter {
       filename = /\/scripts\/(.+)\?checksum/.exec(req.url)[1];
     else filename = /\/hosted_files\/(.+)\?checksum/.exec(req.url)[1];
 
+    filename = decodeURI(filename)
+
     return this.controller.getFile(
       req.config.applicationId,
       folder, filename, version, checksum)
