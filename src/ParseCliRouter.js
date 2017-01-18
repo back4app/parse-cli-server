@@ -167,6 +167,10 @@ class ParseCliRouter extends PromiseRouter {
         content = req.body.content,
         contentType = req.headers['content-type'];
 
+    try {
+      filename = decodeURI(filename);
+    } catch (err) {}
+
     return this.controller.uploadFile(
         req.config.applicationId,
         folder, filename, content, contentType)
@@ -188,6 +192,10 @@ class ParseCliRouter extends PromiseRouter {
     if (folder === 'cloud')
       filename = /\/scripts\/(.+)\?checksum/.exec(req.url)[1];
     else filename = /\/hosted_files\/(.+)\?checksum/.exec(req.url)[1];
+
+    try {
+      filename = decodeURI(filename);
+    } catch (err) {}
 
     return this.controller.getFile(
       req.config.applicationId,
