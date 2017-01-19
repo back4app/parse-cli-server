@@ -138,10 +138,9 @@ class VendorAdapter {
     return this._copy(
       path.join(deployPath, 'cloud'),
       path.dirname(this.cloud))
-    .then(
-      this._copy(
-        path.join(deployPath, 'public'),
-        this.public_html))
+    .then(() => this._copy(
+      path.join(deployPath, 'public'),
+      this.public_html))
     .then(() => {
       console.log("Published!")
     });

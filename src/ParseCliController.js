@@ -100,10 +100,6 @@ class ParseCliController {
   }
 
   getFile(appId, folder, filename, version, checksum){
-    try {
-      filename = decodeURIComponent(filename)
-    } catch (err) {}
-
     let config = AppCache.get(appId),
         query = { folder, filename, version, checksum };
     return config.databaseController.find(
@@ -116,6 +112,7 @@ class ParseCliController {
       var object = objects[0];
       return config.filesController.getFileData(config, object.name)
       .then(data => {
+        // Data is base64 encoded
         if (object.encoding == 'base64') {
           data = new Buffer(data.toString(), 'base64');
         }
