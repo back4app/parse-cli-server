@@ -115,6 +115,21 @@ class ParseCliRouter extends PromiseRouter {
     });
   }
 
+  getAccountKey(req) {
+   var password = req.get('X-Parse-Password'),
+       email = req.get('X-Parse-Email');
+
+   this.controller.getAccountKey(email, password)
+     .then(key => {
+       return {
+         status: 200,
+         response: {
+           accountKey: key
+         }
+       }
+     })
+  }
+
   getJsVersions(req){
     return this.controller.getJsVersions(req.config.applicationId).then(versions => {
       return {
@@ -268,6 +283,10 @@ class ParseCliRouter extends PromiseRouter {
       'GET',
       '/supported',
       req => this.isSupported(req));
+    this.route(
+      'GET',
+      'accountKey',
+      req => this.getAccountKey(req));
     this.route(
       'POST',
       '/accountKey',
