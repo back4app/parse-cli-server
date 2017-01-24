@@ -10,7 +10,7 @@ const FilesCollectionName = "deployFile";
 function computeChecksum(content){
     var algo = 'md5',
         md5sum = crypto.createHash(algo);
-    md5sum.update(content);
+    md5sum.update(content, 'binary');
     return md5sum.digest('hex');
 }
 
