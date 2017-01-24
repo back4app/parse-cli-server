@@ -80,6 +80,17 @@ class ParseCliRouter extends PromiseRouter {
         other = req.query.other,
         version = req.query.version;
 
+    if (version == 'latest') {
+      return this.controller.getCliLatestVersion()
+      .then(latestVersion => {
+        return {
+          response: {
+            version: latestVersion,
+          }
+        }
+      });
+    }
+
     return this.controller.isSupported(mode, other, version)
     .then(({ warning }) => {
       var obj = {};
@@ -89,7 +100,8 @@ class ParseCliRouter extends PromiseRouter {
       return {
         response: obj
       };
-    }, () => {
+    }, (err) => {
+      console.log(err);
       var error = {'error': 'unsupported method: ' + other};
       return {
         status: 400,

@@ -10,7 +10,7 @@ const FilesCollectionName = "deployFile";
 function computeChecksum(content){
     var algo = 'md5',
         md5sum = crypto.createHash(algo);
-    md5sum.update(content);
+    md5sum.update(content, 'binary');
     return md5sum.digest('hex');
 }
 
@@ -19,11 +19,11 @@ class ParseCliController {
     this.vendorAdapter = vendorAdapter;
   }
 
-  isSupported(mode, other, version){
-    if (version == 'latest') {
-      return this.vendorAdapter.getCliLatestVersion();
-    }
+  getCliLatestVersion(){
+    return this.vendorAdapter.getCliLatestVersion();
+  }
 
+  isSupported(mode, other, version){
     return new Promise((resolve, reject) => {
       // local commands must be defined
       var localCommands = [

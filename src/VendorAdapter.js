@@ -1,5 +1,5 @@
 import fs from 'fs-extra';
-import http from 'http';
+import https from 'https';
 import os from 'os';
 import path from 'path';
 
@@ -19,23 +19,27 @@ class VendorAdapter {
 
   getCliLatestVersion() {
     return new Promise((resolve, reject) => {
-      var options = {
-        protocol: 'https',
-        host: 'api.github.com',
-        path: 'repos/' + this.cli_repository + '/releases',
-      };
-      var callback = response => {
-        var str = '';
+      https.get({
+        host: "api.github.com",
+        path: '/repos/' + this.cli_repository + '/releases',
+        headers: {
+          "User-Agent": "back4app/parse-cli-server"
+        }
+      }, response => {
+        var data = '';
         response.on('data', chunk => {
-          str += chunk;
+          data += chunk;
         });
         response.on('end', () => {
-          var releases = JSON.parse(str),
+          var releases = JSON.parse(data),
               latest = releases[0];
           resolve(latest.tag_name.slice(8));
         });
-      };
-      http.request(options, callback).end();
+      })
+      .on('error', (error) => {
+        console.error(error);
+        throw error;
+      });
     });
   }
 
