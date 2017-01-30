@@ -4,14 +4,29 @@ import * as middlewares from "parse-server/lib/middlewares";
 export default class LogsRouter extends _LogsRouter {
 
     handleGET(req) {
-        return super.handleGET(req).then(this._patchResponse);
+        let startTime = req.query.startTime;
+        if (startTime) {
+            startTime = JSON.parse(startTime);
+            if (startTime.__type === 'Date') {
+                startTime = startTime.iso;
+            }
+            req.query.from = startTime;
+        }
+        return super.handleGET(req)
+        .then(response => {
+            // remove logs exactly at startTime
+            response.response = response.response.filter(log => {
+                return log.timestamp != startTime;
+            });
+            return response;
+        })
+        .then(this._patchResponse);
     }
 
     _patchResponse(response) {
         response.response.forEach(log => {
             log.timestamp = {
-                // FIXME: don't know if __type is correct
-                __type: 'Timestamp',
+                __type: 'Date',
                 iso: log.timestamp,
             };
         });
