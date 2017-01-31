@@ -13,6 +13,7 @@ class ParseCliServer {
   constructor({
     config,
     vendorAdapter,
+    logsRouter,
     cloud,
     public_html
   }) {
@@ -45,21 +46,23 @@ class ParseCliServer {
     express request length limit is very low. Change limit value
     for fix 'big' files deploy problems.
     */
-    app.use(bodyParser.json({type: function() { return true; }, limit: this.length_limit}));
+    app.use(bodyParser.json({ type: function() { return true; }, limit: this.length_limit }));
 
     this.router.mountOnto(app);
 
     let hooksRouter = new HooksRouter();
     hooksRouter.mountOnto(app);
 
-    let logsRouter = new LogsRouter();
+    if (!logsRouter) {
+      logsRouter = new LogsRouter()
+    }
     logsRouter.mountOnto(app);
-
     return app;
+
   }
 }
 
 export default ParseCliServer;
 export {
-    ParseCliServer
+  ParseCliServer
 };
