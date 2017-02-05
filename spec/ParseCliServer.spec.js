@@ -1,54 +1,22 @@
 import express from 'express';
 import http from 'http';
 
+import AppCache from 'parse-server/lib/cache';
 import ParseCliServer from '../lib/ParseCliServer';
 import VendorAdapter from '../lib/VendorAdapter';
 
-var server;
-let port = 9877;
-
-const configureServer = () => {
-  return new Promise((resolve, reject) => {
-    try {
-      let app = express();
-      app.use(new ParseCliServer({
-        config: {
-          appId: 'APPLICATION_ID',
-          masterKey: 'MASTER_KEY',
-        }
-      }).app);
-      app.use((req, res) => {
-        fail('should not call next');
-      });
-      server = app.listen(port);
-      resolve();
-    } catch(error) {
-      reject(error);
-    }
-  });
-}
-const reconfigureServer = () => {
-  return server.close(() => {
-    return configureServer();
-  });
-}
-
 describe('ParseCliServer', () => {
-  configureServer();
-  //beforeEach(reconfigureServer);
+  let config = AppCache.get('test');
 
   function makeRequest(headers, callback) {
     http.request({
       method: 'GET',
-      path: '/apps',
-      headers: headers,
       host: 'localhost',
-      port: port,
+      port: 8378,
+      path: '/1/apps',
+      headers: headers,
     }, callback).end();
   }
-
-  describe('route isSupported', () => {
-  });
 
   describe('AccountKey must be loaded', () => {
     it('AccountKey header is just loaded', (done) => {
@@ -59,11 +27,11 @@ describe('ParseCliServer', () => {
         done();
       });
     });
-    /* the default vendorAdapter accept any email with password=masterKey */
+    // the default vendorAdapter accept any email with password=masterKey
     it('Accept correct password', (done) => {
       makeRequest({
         'X-Parse-Email': 'test@example.com',
-        'X-Parse-Password': 'MASTER_KEY',
+        'X-Parse-Password': 'test',
       }, res => {
         expect(res.statusCode).toEqual(200);
         done();
