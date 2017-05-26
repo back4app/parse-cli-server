@@ -276,11 +276,15 @@ class ParseCliController {
       return deployInfo;
     })
     .then(di => this._setReleaseMetadata(appId, di))
+    .then(() => this._comparePackageVersion(appId, deployInfo))
+    .then((packageInfo) => { deployInfo.packageChanged =
+      packageInfo.packageChanged; })
     .then(() => this._collect(appId, deployInfo, 'cloud'))
     .then(() => this._collect(appId, deployInfo, 'public'))
     .then(() => this.vendorAdapter.publish(appId, deployInfo))
     .then(() => {
       delete deployInfo._checksum;
+      delete deployInfo.packageChanged;
       return deployInfo;
     })
     .then(() => {
@@ -366,6 +370,32 @@ class ParseCliController {
       delete deployInfo.files;
       return deployInfo;
     });
+  }
+
+  _comparePackageVersion(appId, deployInfo) {
+    let packageInfo = {};
+    return this.getDeployInfo(appId)
+      .then(deployInfo => this._findDeployInfo(
+        appId,
+        {releaseId: {"$lt": deployInfo.releaseId}},
+        {releaseId: -1}))
+      .then(oldDeployInfo => this._processFiles(appId, oldDeployInfo || {}))
+      .then(oldDeployInfo => {
+        packageInfo.packageChanged =
+          !oldDeployInfo.checksums ||
+          deployInfo.checksums['cloud']['package.json'] !==
+            oldDeployInfo.checksums['cloud']['package.json'];
+        return packageInfo;
+      })
+      .then(() => {
+        if (this.vendorAdapter.installModules && packageInfo.packageChanged) {
+          return this.vendorAdapter.installModules(appId)
+            .then(() => packageInfo);
+        } else {
+          packageInfo.packageChanged = false;
+          return packageInfo;
+        }
+      });
   }
 
   getCollectionName(appId, collectionName) {
