@@ -182,9 +182,9 @@ class ParseCliController {
       options)
     .then(results => {
       return results.map(deployInfo => {
-        deployInfo.files = deployInfo.files.filter( file => {
-          return file.filename.indexOf('node_modules') !== 0;
-        });
+        if (this.vendorAdapter.filterFiles) {
+          this.vendorAdapter.filterFiles(deployInfo);
+        }
         return this._unpatchDeployInfo(deployInfo);
       });
     })
