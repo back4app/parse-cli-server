@@ -6,10 +6,6 @@
     "type": "git",
     "url": "https://github.com/back4app/parse-cli-server"
   },
-  "files": [
-    "lib/",
-    "LICENSE"
-  ],
   "author": "BACK4APP SERVICOS DIGITAIS LTDA",
   "license": "MIT",
   "dependencies": {
