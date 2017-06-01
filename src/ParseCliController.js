@@ -50,6 +50,7 @@ class ParseCliController {
         "releases",
         "rollback",
         "triggers",
+        "cloud",
       ],
       nokCommands = [
         "symbols",
