@@ -383,6 +383,8 @@ class ParseCliController {
       .then(oldDeployInfo => {
         packageInfo.packageChanged =
           !oldDeployInfo.checksums ||
+          deployInfo.checksums['cloud'] &&
+          oldDeployInfo.checksums['cloud'] &&
           deployInfo.checksums['cloud']['package.json'] !==
             oldDeployInfo.checksums['cloud']['package.json'];
         return packageInfo;
