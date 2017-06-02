@@ -10,10 +10,14 @@ import HooksRouter from './HooksRouter';
 import LogsRouter from './LogsRouter';
 import VendorAdapter from './VendorAdapter';
 
+// Fix wrong `this` in app scope
+var self;
+
 class ParseCliServer {
   constructor({
     config,
     vendorAdapter,
+    logsRouter,
     cloud,
     public_html
   }) {
@@ -33,37 +37,49 @@ class ParseCliServer {
         public_html: public_html
       });
     }
+
     let controller = new ParseCliController(vendorAdapter);
     this.router = new ParseCliRouter(controller);
+
+    /*
+     * The server can use a different structure for logs,
+     * make them pass the logsRouter.
+     */
+    if (!logsRouter)
+      logsRouter = new LogsRouter()
+
+    this.logsRouter = logsRouter;
+    self = this;
   }
 
-  get app() {
-    var app = express();
+  app() {
+    var _app = express();
     /*
-    parse-cli always send json body but don't send a Content-Type
-    header or in some cases send an unexpected value like
-    application/octet-stream.
-    express request length limit is very low. Change limit value
-    for fix 'big' files deploy problems.
-    */
-    app.use(bodyParser.json({type: function() { return true; }, limit: this.length_limit}));
+     * parse-cli always send json bodies, except for the `logs`
+     * command, that is send as an urlencoded body.
+     * parse-cli don't send a Content-Type header
+     * or in some cases send an unexpected value like
+     * application/octet-stream.
+     * express request length limit is very low. Change limit value
+     * for fix 'big' files deploy problems.
+     */
+    _app.use(bodyParser.urlencoded({ type: () => { return true }, extended: false, limit: self.length_limit }))
+    _app.use(bodyParser.json({ type: () => { return true }, limit: self.length_limit }));
 
-    this.router.mountOnto(app);
+    self.router.mountOnto(_app);
 
     let functionsRouter = new FunctionsRouter();
     functionsRouter.mountOnto(app);
 
     let hooksRouter = new HooksRouter();
-    hooksRouter.mountOnto(app);
+    hooksRouter.mountOnto(_app);
 
-    let logsRouter = new LogsRouter();
-    logsRouter.mountOnto(app);
-
-    return app;
+    self.logsRouter.mountOnto(_app);
+    return _app;
   }
 }
 
 export default ParseCliServer;
 export {
-    ParseCliServer
+  ParseCliServer
 };
