@@ -14,6 +14,7 @@
   "license": "MIT",
   "dependencies": {
     "body-parser": "1.15.2",
+    "chokidar": "^1.7.0",
     "crypto": "0.0.3",
     "express": "4.14.0",
     "fs-extra": "1.0.0",
@@ -37,6 +38,9 @@
     "test": "NODE_ENV=test TESTING=1 node ./spec/support/runner.js",
     "start": "node ./bin/parse-server",
     "prepublish": "npm run build"
+  },
+  "bin": {
+    "parse-cli-server": "./lib/cli/parse-cli-server.js"
   },
   "main": "lib/ParseCliServer.js"
 }
