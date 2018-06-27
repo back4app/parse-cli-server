@@ -5,7 +5,6 @@ import AppCache from 'parse-server/lib/cache';
 
 import ParseCliController from './ParseCliController';
 import ParseCliRouter from './ParseCliRouter';
-import FunctionsRouter from './FunctionsRouter';
 import HooksRouter from './HooksRouter';
 import LogsRouter from './LogsRouter';
 import VendorAdapter from './VendorAdapter';
@@ -49,9 +48,6 @@ class ParseCliServer {
     app.use(bodyParser.json({type: function() { return true; }, limit: this.length_limit}));
 
     this.router.mountOnto(app);
-
-    let functionsRouter = new FunctionsRouter();
-    functionsRouter.mountOnto(app);
 
     let hooksRouter = new HooksRouter();
     hooksRouter.mountOnto(app);

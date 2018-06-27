@@ -4,7 +4,6 @@ import os from 'os';
 import path from 'path';
 
 import { version } from 'parse-server/package.json'
-import * as triggers from 'parse-server/lib/triggers'
 
 class VendorAdapter {
   constructor({
@@ -146,22 +145,9 @@ class VendorAdapter {
     .then(() => this._copy(
       path.join(deployPath, 'public'),
       this.public_html))
-    .then(() => this._reloadCloudCode())
     .then(() => {
-      console.log("Published!");
+      console.log("Published!")
     });
-  }
-
-  _reloadCloudCode(){
-    triggers._unregisterAll();
-
-    // cleaning require cache
-    Object.keys(require.cache).forEach(function(key) {
-      delete require.cache[key];
-    });
-
-    var mainFile = path.resolve(process.cwd(), this.cloud);
-    require(mainFile);
   }
 
   // optional collectionName customization
