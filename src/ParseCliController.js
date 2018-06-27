@@ -375,7 +375,8 @@ class ParseCliController {
 
   _comparePackageVersion(appId, deployInfo) {
     let packageInfo = {};
-    return this.getDeployInfo(appId)
+    var promise = deployInfo ? Promise.resolve(deployInfo) : this.getDeployInfo(appId);
+    return promise
       .then(deployInfo => this._findDeployInfo(
         appId,
         {releaseId: {"$lt": deployInfo.releaseId}},
