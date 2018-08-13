@@ -1,6 +1,6 @@
 {
   "name": "parse-cli-server",
-  "version": "0.0.27",
+  "version": "0.0.28",
   "description": "Parse CLI server",
   "repository": {
     "type": "git",
