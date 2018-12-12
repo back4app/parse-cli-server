@@ -384,7 +384,7 @@ class ParseCliController {
       .then(oldDeployInfo => this._processFiles(appId, oldDeployInfo || {}))
       .then(oldDeployInfo => {
         packageInfo.packageChanged =
-          !oldDeployInfo.checksums && deployInfo.checksums && deployInfo.checksums['cloud']['package.json'] ||
+          !oldDeployInfo.checksums && deployInfo.checksums && deployInfo.checksums['cloud'] && deployInfo.checksums['cloud']['package.json'] ||
           deployInfo.checksums &&
           oldDeployInfo.checksums &&
           deployInfo.checksums['cloud'] &&
