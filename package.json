@@ -18,7 +18,7 @@
     "crypto": "^1.0.1",
     "express": "4.14.0",
     "fs-extra": "1.0.0",
-    "parse-server": "2.2.25"
+    "parse-server": "4.10.3"
   },
   "devDependencies": {
     "babel-cli": "6.18.0",
